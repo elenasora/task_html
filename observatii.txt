@@ -1,0 +1,39 @@
+Cum am gandit solutia pentru acest task:
+1. Identificarea cerintei principale:
+    Prima data m-am gandit la problema in sine: avem un set de fisiere HTML, fiecare in diferite subfoldere (tier1, tier2 etc.), 
+    si trebuia sa fac un fel de organizare sau grupare a acestora pe baza continutului lor, atat vizual cat si bazandu-ma pe textul in sine
+
+2. Definirea modului in care voi compara paginile:
+    Pentru compararea vizuala, am realizat ca trebuie sa fac un fel de "hashing" al imaginilor pentru a le putea compara mai usor 
+    Mi-am pus urmatoarea intrebare: Cum pot sa creez o reprezentare numerica a imaginii care sa reflecte gradul de similitudine? 
+                                    => folosind pHash
+                                    (el imi permite sa obtin o valoare numerica care descrie caracteristicil imaginii si dupa puteam sa compar imaginile)
+    In ceea ce priveste compararea textului, m-am gandit sa folosesc un model preantrenat pentru embeddings,
+    deoarece aceste modele sunt bune pentru a reprezenta textul intr-un spatiu numeric in care distanta intre 
+    vectori reflecta similitudinea cuvintelor din imagine 
+    Modelul all-MiniLM-L6-v2 de la SentenceTransformers mi s-a parut adecvat pentru ca am citit ca este rapid si eficient pentru dimensiuni mari de text
+
+3. Procesarea paginilor HTML:
+    Cum pot sa extrag atat imaginea cat si textul dintr-un fisier HTML? 
+    => am folosit Playwright pentru a incarca fiecare pagina HTML in browser, a face un screenshot al acesteia si a extrage textul 
+       (M-am asigurat ca fac procesul asincron pentru a prelucra mai multe fisiere in paralel)
+       (Also, m-am asigurat ca in cazul in care o pagina nu se poate incarca sau nu se poate extrage continutul, codul sa continue cu restul fisierelor, deci am inclus un bloc try-except)
+
+4. Clustering si gruparea paginilor:
+    Cum pot sa grupez paginile HTML astfel incat cele mai asemanatoare sa fie in acelasi grup? 
+    => sa combin distantele vizuale (pe baza pHash-ului) si distantele textuale (pe baza embedding-urilor) si sa le folosesc pentru a calcula o "distanta totala" intre fiecare pereche de pagini
+
+    Am ales un algoritm de clustering in care nu stim numarul exact de grupuri, dar vrem sa avem paginile care sunt suficient de similare intr-un singur grup
+    Algoritmul folosește un prag de distanta pentru a decide care pagini vor fi grupate impreuna
+    Am ales pragul de distanță 0.4 ca fiind rezonabil pentru a detecta grupuri de pagini similare, dar acest prag ar putea fi ajustat in functie de situatie
+
+5.Salvarea rezultatelor:
+  Cum pot sa pastrez aceste grupuri intr-un format usor de folosit si partajat?
+  Am ales sa salvez rezultatele intr-un fisier JSON pentru ca acest format este usor de citit si de procesat ulterior
+
+6. Optimizari si verificari finale:
+
+ - Am folosit playwright async pentru a rula mai multe procese in paralel si a economisi timp
+ - Am inclus mesaje de eroare pentru a intelege ce nu functioneaza in cazul in care ceva nu merge
+ - Am ales sa nu folosesc procese complexe de preprocesare a textului, pentru ca modelul pre-antrenat deja face o buna prelucrare a textului
+
